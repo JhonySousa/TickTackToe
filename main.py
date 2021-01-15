@@ -1,6 +1,5 @@
 from easyansi import cursor, screen
 import getkey
-# from time import sleep
 
 # Posição do cursor no terminal...
 WIN_POS = cursor.get_location()
