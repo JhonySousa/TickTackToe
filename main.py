@@ -2,6 +2,7 @@ from easyansi import cursor, screen
 import getkey
 # from time import sleep
 
+# Posição do cursor no terminal...
 WIN_POS = cursor.get_location()
 
 
@@ -55,6 +56,40 @@ def draw_menu(menu_opts) -> int:
     return selected
 
 
+def check_game(game_status: list) -> int:
+    """-> Verifica se o jogo já a cabou.
+
+    :param game_status: É o estado do game.
+    :return: as opções de retorno são
+        1: Retorna o indice do jogador que ganhou.
+        2: Retorna -1 se o jogo ainda não acabou.
+        3: Retorna 3 se deu velha.
+    """
+
+    # Horizontal lines
+    for line in game_status:
+        if line[0] == line[1] == line[2] != ' ':
+            return 0 if line[0] == 'O' else 1
+
+    # Vertical Lines
+    for row in range(3):
+        if game_status[0][row] == game_status[1][row] == game_status[2][row] != ' ':
+            return 0 if game_status[0][row] == 'O' else 1
+
+    # Inclinada
+    if game_status[0][0] == game_status[1][1] == game_status[2][2] != ' ':
+        return 0 if game_status[0][0] == 'O' else 1
+    elif game_status[0][2] == game_status[1][1] == game_status[2][0] != ' ':
+        return 0 if game_status[0][2] == 'O' else 1
+
+    # Verifica velha
+    for line in game_status:
+        for element in line:
+            if element == ' ':
+                return -1
+    return 3
+
+
 main_menu = ('New', 'Quit')
 opt = draw_menu(main_menu)
 
@@ -62,7 +97,7 @@ opt = draw_menu(main_menu)
 if opt == 1:
     exit()
 
-game_end = False
+game_end = -1
 default_pos = (WIN_POS[0]+3, WIN_POS[1]+2)
 selection = [0, 0]
 player = True
@@ -74,7 +109,7 @@ game_status = [
     [' ', ' ', ' ']
 ]
 last_pos = default_pos
-while not game_end:
+while game_end < 0:
     cursor.locate(WIN_POS[0], WIN_POS[1])
     draw_game(game_status)
     print(f'\n\033[32mEstá na vez do jogador {int(player)+1}\033[m')
@@ -101,5 +136,14 @@ while not game_end:
             default_pos[0] + selection[0] * 4,
             default_pos[1] + selection[1] * 2
         )
+    game_end = check_game(game_status)
     player = not player
     last_pos = cursor.get_location()
+
+cursor.locate(WIN_POS[0], WIN_POS[1])
+draw_game(game_status)
+screen.clear_line(WIN_POS[1]+9)
+if game_end == 3:
+    print('\033[1mDeu velha...\033[m')
+else:
+    print(f'\033[1;5;32mO Player {game_end+1} GANHOU!!\033[m')
